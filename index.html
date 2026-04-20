@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Payment — Visual Flow Explorer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{--bg:#f3f2f0;--s1:#f9f9f8;--s2:#eceae8;--s3:#e3e1de;--bd:#e3e1de;--tx:#2b2b2a;--dim:#76746f;--dim2:#9b9994;--accent:#2b2b2a;--grn:#6b8f5e;--red:#bf5940;--ylw:#b08c2a;--blu:#8b7e6a;--card-shadow:none}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased}
+::selection{background:#2b2b2a20}
+
+/* ─── NAV ─── */
+nav{position:sticky;top:0;z-index:200;max-width:1200px;margin:0 auto;padding:12px 24px}
+.nav-inner{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 24px;background:rgba(249,249,248,.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(227,225,222,.6);border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.nav-top{display:flex;align-items:center;justify-self:start}
+.logo{font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.3px}
+.pills{display:flex;gap:0;justify-content:center;overflow-x:auto;scrollbar-width:none}.pills::-webkit-scrollbar{display:none}
+.pill{padding:18px 14px;border:none;background:none;color:var(--dim);cursor:pointer;white-space:nowrap;font-size:13px;font-weight:600;transition:all .2s;border-bottom:2px solid transparent}
+.pill:hover{color:var(--tx)}
+.pill.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:800}
+
+/* ─── SCENARIO BAR ─── */
+.scn-bar{overflow-x:auto;scrollbar-width:none}
+.scn-bar::-webkit-scrollbar{display:none}
+.scn-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:center;padding:24px 24px 8px}
+.scn-tabs{display:inline-flex;background:var(--s2);border-radius:12px;padding:3px;gap:2px;border:1px solid var(--bd)}
+.scn-pill{padding:10px 24px;border-radius:10px;border:none;background:transparent;color:var(--dim);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.scn-pill:hover{color:var(--tx)}
+.scn-pill.on{background:var(--tx);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+
+/* ─── MAIN ─── */
+.main{max-width:1200px;margin:0 auto;padding:24px}
+
+/* ─── PHONE ROW ─── */
+.phone-section{display:flex;gap:110px;align-items:flex-start;justify-content:center;margin-bottom:20px;flex-wrap:wrap;position:relative}
+.phone-section::before{content:'';position:absolute;left:50%;top:40px;bottom:20px;border-left:1px dashed var(--bd);z-index:0}
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:14px}
+.col-label{font-size:15px;font-weight:700;color:#484746;letter-spacing:.5px;display:flex;align-items:center;gap:4px}.col-label::before,.col-label::after{content:'';width:4px;height:4px;border-radius:50%;background:#484746}
+
+/* ═══ PHONE ═══ */
+.phone{width:280px;height:560px;background:#f9f9f8;color:#2b2b2a;border-radius:32px;border:2px solid #e3e1de;box-shadow:0 8px 32px rgba(40,30,20,.08),0 0 0 1px rgba(40,30,20,.04);overflow:hidden;display:flex;flex-direction:column;position:relative;transition:all .4s cubic-bezier(.4,0,.2,1)}
+.phone .ph-body{transition:opacity .25s ease}
+.phone::after{display:none}
+.phone .thumb{display:none}
+.ph-status{height:40px;padding:10px 18px 0;display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:#585756;flex-shrink:0}
+.ph-bar{padding:6px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.ph-bar .back{width:24px;height:24px;border-radius:50%;background:#e3e1debe4;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;color:#76746f}
+.ph-bar .title{font-size:14px;font-weight:700;flex:1;color:#2b2b2a}
+.ph-bar .badge{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
+.ph-body{flex:1;padding:0 14px 14px;overflow:hidden}
+.ph-bottom{padding:4px 14px 20px;flex-shrink:0}
+.ph-btn{width:100%;padding:12px;border-radius:12px;border:none;font-size:13px;font-weight:700;color:#fff;cursor:pointer;text-align:center;transition:all .15s}
+.ph-btn:hover{filter:brightness(1.05);transform:translateY(-1px)}
+
+/* Phone UI components */
+.px{background:#eeede9;border-radius:11px;padding:12px;margin-bottom:8px}
+.px.dk{background:#2b2b2a;color:#f3f2f0}
+.pr{display:flex;justify-content:space-between;align-items:center;padding:3px 0}
+.pr .l{font-size:10px;color:#9b9994}.pr .v{font-size:12px;font-weight:600}
+.pdiv{height:1px;background:#e3e1de;margin:5px 0}
+.pamt{font-size:26px;font-weight:800;text-align:center;padding:10px 0}
+.psub{font-size:10px;color:#9b9994;text-align:center}
+.ptk{display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:10px;border:1.5px solid #e3e1de;margin-bottom:6px}
+.ptk.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,#fff)}
+.ptk .ico{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.ptk .nm{font-size:12px;font-weight:600}.ptk .bl{font-size:9px;color:#9b9994}
+.ptk .chk{width:16px;height:16px;border-radius:50%;border:2px solid #e3e1de;margin-left:auto;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0}
+.ptk.sel .chk{background:var(--accent);border-color:var(--accent)}
+.pqr{width:120px;height:120px;margin:10px auto;border-radius:10px;background:#eeede9;display:grid;grid-template-columns:repeat(11,1fr);gap:1px;padding:6px;overflow:hidden}
+.pqc{border-radius:1px}
+.pprog{display:flex;align-items:center;gap:8px;padding:8px 0}
+.pprog .ring{width:36px;height:36px;border-radius:50%;border:3px solid #e3e1de;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.pprog .ring::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:3px solid transparent;border-top-color:var(--accent);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pok{text-align:center;padding:14px 0}
+.pok .circle{width:48px;height:48px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+.pok h3{font-size:15px;font-weight:700;margin-bottom:2px}
+.pok p{font-size:10px;color:#9b9994}
+.pwallet{display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:9px;background:#eeede9;margin-bottom:5px}
+.pwallet .wi{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;background:#e3e1de}
+.pwallet .wn{font-size:11px;font-weight:600}.pwallet .wa{font-size:9px;color:#9b9994;font-family:monospace}
+.ptl{padding:4px 0}
+.ptl-i{display:flex;gap:8px;padding:4px 0}
+.ptl-d{width:7px;height:7px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.ptl-t{font-size:11px;font-weight:600}.ptl-s{font-size:9px;color:#9b9994}
+.pnote{font-size:9px;text-align:center;padding:6px 10px;border-radius:7px;margin-top:5px;line-height:1.4}
+.mp-stat{text-align:center;padding:8px 0}
+.mp-big{font-size:22px;font-weight:800}
+.mp-sub{font-size:10px;color:#9b9994;margin-top:1px}
+.mp-badge{display:inline-flex;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:600}
+.mp-bar{height:3px;background:#e3e1de;border-radius:2px;overflow:hidden;margin:3px 0}
+.mp-bar-fill{height:100%;border-radius:2px}
+.mp-note{font-size:9px;padding:6px 8px;border-radius:6px;margin-top:5px;line-height:1.4;text-align:center}
+
+/* ─── CONTROLS ─── */
+.controls{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:0;flex-wrap:wrap}
+.ctrl-dots{display:flex;gap:5px;align-items:center}
+.ctrl-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:all .3s;flex-shrink:0}
+.ctrl-dot.on{background:#fff;width:18px;border-radius:4px}
+.ctrl-label{font-size:11px;color:var(--dim);min-width:70px;text-align:center}
+.ctrl-btn{padding:7px 20px;border-radius:8px;border:1px solid var(--bd);background:var(--s1);color:var(--dim);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.ctrl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ctrl-btn.pri{background:var(--tx);color:#fff;border-color:var(--tx)}
+.ctrl-btn.pri:hover{filter:brightness(1.1)}
+.ctrl-btn:disabled{opacity:.3;cursor:default}
+
+/* ─── STEP CONTEXT ─── */
+.ctx-strip{width:80%;margin:16px auto 0;padding:18px 22px;background:#2b2b2a;border-radius:12px;color:#f3f2f0}
+.ctx-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.ctx-col{position:relative}
+.ctx-cols .ctx-col:first-child::after{content:'';position:absolute;right:-7px;top:0;bottom:0;border-right:1px solid rgba(255,255,255,.12)}
+.ctx-col .ctx-role{font-size:11px;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,.5);margin-bottom:4px}
+.ctx-col .ctx-title{font-size:14px;font-weight:700;color:#f3f2f0;margin-bottom:4px}
+.ctx-col .ctx-desc{font-size:13px;color:rgba(255,255,255,.6);line-height:1.6}
+.ctx-tag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;background:color-mix(in srgb,var(--accent) 10%,var(--s1));color:var(--accent)}
+
+/* ─── PHONE NAV (arrows) ─── */
+.phone-nav{display:flex;align-items:center;justify-content:space-between}
+.ph-arrow{width:40px;height:40px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;padding:0}
+.ph-arrow:hover{opacity:.6}
+
+/* ─── TOP WRAPPER (scn tabs + phones) ─── */
+.top-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:24px 24px 36px;margin-bottom:24px}
+.top-wrap .scn-inner{padding:0 0 16px;justify-content:center;display:flex}
+
+/* ─── INFO WRAPPER ─── */
+.info-wrap{background:var(--s2);border-radius:16px;padding:24px;margin-top:36px}
+
+/* ─── INFO SECTION (below phones) ─── */
+.info-section{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.info-section{grid-template-columns:1fr}}
+
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:24px}
+.card h3{font-size:15px;font-weight:700;margin-bottom:10px;color:var(--tx);display:flex;align-items:center;gap:4px;letter-spacing:.5px}.card h3::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--tx)}
+.card.full{grid-column:1/-1}
+
+/* Insight items */
+.insight-item{padding:12px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;line-height:1.7;border:none;background:color-mix(in srgb,var(--s2) 50%,var(--s1))}
+.insight-item.critical,.insight-item.good,.insight-item.warn,.insight-item.info{background:color-mix(in srgb,var(--s2) 50%,var(--s1))}
+.insight-item strong{color:var(--tx)}
+.insight-label{font-size:13px;font-weight:700;letter-spacing:.2px;margin-bottom:5px;word-break:keep-all;overflow-wrap:break-word;color:var(--tx)}
+
+/* Quick stats */
+.qstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qs{padding:18px 8px;border-radius:8px;background:var(--s2);text-align:center}
+.qs .qv{font-size:20px;font-weight:800;color:var(--accent)}.qs .ql{font-size:11px;color:var(--dim);margin-top:3px}
+
+/* Docs items inline */
+.doc-item{padding:14px 16px;background:color-mix(in srgb,var(--s2) 50%,var(--s1));border-radius:8px;margin-bottom:8px}
+.doc-item h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.doc-item p{font-size:12px;color:var(--dim);line-height:1.6}
+.doc-tag{display:inline-block;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;margin-top:6px;background:color-mix(in srgb,var(--accent) 10%,var(--s2));color:var(--accent)}
+
+/* Score bars */
+.sbar{display:flex;align-items:center;gap:8px;padding:7px 0}
+.sbar .sl{width:52px;font-size:12px;color:var(--dim);text-align:right;flex-shrink:0}
+.sbar .sbg{flex:1;height:7px;background:var(--s3);border-radius:4px;overflow:hidden}
+.sbar .sfg{height:100%;border-radius:4px;background:var(--accent)}
+.sbar .sv{width:22px;font-size:13px;font-weight:700;text-align:right;color:var(--accent)}
+
+/* ─── PAGE HEAD ─── */
+.pg-head{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:4px 12px;margin:8px 0 24px;padding:0 24px}
+.pg-title{font-size:28px;font-weight:800;color:var(--tx);letter-spacing:-.5px;grid-column:1;grid-row:1}
+.pg-flag{grid-column:2;grid-row:1;padding:7px 14px;border-radius:999px;background:color-mix(in srgb,var(--accent) 10%,var(--s1));color:var(--accent);font-size:12px;font-weight:700;border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);white-space:nowrap;justify-self:start}
+.pg-sub{font-size:15px;font-weight:500;color:var(--dim);grid-column:1/-1;grid-row:2}
+
+/* ─── COMPARE ─── */
+.compare{max-width:900px;margin:0 auto}
+.compare h2{font-size:18px;font-weight:800;margin-bottom:4px}
+.compare .csub{font-size:12px;color:var(--dim);margin-bottom:16px}
+.ctbl{width:100%;border-collapse:separate;border-spacing:0;font-size:11px}
+.ctbl th{padding:10px 8px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);background:var(--s2);border-bottom:1px solid var(--bd)}
+.ctbl td{padding:8px;border-bottom:1px solid var(--bd);background:var(--s1)}
+.ctbl tr:hover td{background:var(--s2)}
+.ck{color:var(--grn);font-weight:700}.cx{color:var(--red);font-weight:700}
+.callout{padding:12px 14px;border-radius:10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--s1));margin-bottom:12px;font-size:11px;color:var(--dim);line-height:1.7}
+.callout strong{color:var(--tx)}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.sc-card{padding:12px;background:var(--s1);border:1px solid var(--bd);border-radius:10px}
+.sc-card h4{font-size:11px;font-weight:700;margin-bottom:3px}
+.sc-card p{font-size:10px;color:var(--dim);line-height:1.4}
+.sc-card .stag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;margin-top:4px;background:color-mix(in srgb,var(--accent) 10%,var(--s1));color:var(--accent)}
+
+@media(max-width:700px){.phone{width:240px;height:480px;border-radius:28px}.phone-section{gap:12px}}
+</style>
+</head>
+<body>
+
+<nav>
+<div class="nav-inner">
+  <div class="nav-top"><div class="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="vertical-align:-3px;margin-right:6px"><rect width="20" height="20" rx="5" fill="#2b2b2a"/><path d="M6 10.5L9 13.5L14.5 7" stroke="#f3f2f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>CryptoPay Explorer</div></div>
+  <div class="pills" id="pills"></div>
+  <div></div>
+</div>
+</nav>
+<div class="main" id="stage"></div>
+
+<script>
+const AC={base:'#5a6e8a',binance:'#b09540',coinbase:'#5a6e8a',stripe:'#7a6e8a',bitpay:'#5a6470'};
+function qr(){return Array(121).fill(0).map(()=>`<div class="pqc" style="background:${Math.random()>.45?'#484746':'#eeede9'}"></div>`).join('')}
+
+const SVCS={
+base:{n:'Base Pay',c:AC.base,pos:'온체인 에스크로 결제 인프라',fee_summary:'1% + 가스비 ~$0.01',
+  qs:[{v:'~1%',l:'수수료'},{v:'~2초',l:'정산'},{v:'비수탁형',l:'유형'},{v:'$0.01',l:'가스비'}],
+  insights:[
+    {type:'critical',label:'핵심 포지션',text:'업계 유일 온체인 에스크로 (Auth-Capture). 전통 결제의 승인→캡처→환불→취소를 스마트 컨트랙트로 재현한 유일한 서비스.'},
+    {type:'warn',label:'최대 약점',text:'법정화폐 직접 정산 미지원. 머천트 대시보드 자체가 없음 — 비수탁형이라 자금이 지갑에 직접 도착. x402도 GUI 없이 서버 API/로그로만 모니터링.'},
+    {type:'good',label:'AI 에이전트',text:'x402: HTTP 402 기반 AI 결제. 1.19억+ TX, 연간화 $600M, USDC 98.7%. Foundation: Google, AWS, Visa, Anthropic.'},
+    {type:'info',label:'수익 구조',text:'5레이어: L0 USDC Rev Share $332.5M/분기 | L1 시퀀서 $75.4M/년(L2 62%) | L2 x402 | L3 Commerce 1% | L4 Business'}
+  ],
+  docs:[
+    {h:'즉시 결제 (1세대 Transfers.sol)',p:'9가지 함수. Uniswap V3 자동 스왑. Base/ETH/Polygon 3개 체인.',tg:'1세대'},
+    {h:'에스크로 (2세대 AuthCaptureEscrow)',p:'Authorize→Capture→Void→Refund→Reclaim. Minimal Proxy 패턴. Base 전용.',tg:'2세대'},
+    {h:'x402 머신 결제',p:'exact(고정)/upto(사용량) 스킴. TypeScript/Python/Rust SDK.',tg:'AI Agent'},
+    {h:'Token Collector 5종',p:'ERC3009(1서명,최상UX) / Permit2 / SpendPermission(구독) / Transfer / Native.',tg:'모듈'},
+    {h:'보안: Spearbit + CB Protocol Security',p:'비업그레이드 컨트랙트. ReentrancyGuard. Apache 2.0 오픈소스.',tg:'감사'}
+  ],
+  scores:{fee:7,speed:9,fiat:4,refund:7,tokens:8,ease:6,users:7,reg:8,total:7.0}
+},
+binance:{n:'Binance Pay',c:AC.binance,pos:'거래소 생태계 내장형 결제',fee_summary:'1% (P2P 무료)',
+  qs:[{v:'1%',l:'MDR'},{v:'<10ms',l:'정산'},{v:'수탁형',l:'유형'},{v:'0%',l:'가스비'}],
+  insights:[
+    {type:'good',label:'최대 강점',text:'3억 사용자, 2,000만 가맹점. 오프체인 내부 원장으로 10K+ TPS, <10ms 처리. P2P 수수료 0%, 가스비 0%.'},
+    {type:'critical',label:'최대 약점',text:'법정화폐 직접 정산 불가 (최대 구조적 약점). 70개국+ 미진출(미국/영국). Binance 계정+KYC 필수.'},
+    {type:'warn',label:'환불 주의',text:'BTC로 결제해도 USDT로 환불 (통화 불일치). 가격 상승분 손실 가능. 단, 수수료 비례 환불은 업계 유일.'},
+    {type:'info',label:'기술',text:'Java/Spring Boot, RocksDB+Raft 합의, 4노드 클러스터. HMAC-SHA512+1초 윈도우. 컴플라이언스 $1.2B 투자.'}
+  ],
+  docs:[
+    {h:'P2P 송금',p:'Pay ID/QR/이메일/전화. 수수료 0%, 300종+, 즉시. 양측 KYC 필수.',tg:'무료'},
+    {h:'Merchant Hosted Checkout',p:'Create Order V2 API. 50종+. FX Engine 자동 환전. 스프레드 0.1~0.5%(비공개).',tg:'API'},
+    {h:'Payment Links + QR',p:'No-code 대시보드 링크. 코딩 불필요. 오프라인 QR.',tg:'No-code'},
+    {h:'수수료: MDR 1% + Payout 0.80%',p:'FX 스프레드 비공개. $10K 총비용 ~$140~150. 실효 ~1.4~1.5%.',tg:'비용'}
+  ],
+  scores:{fee:7,speed:10,fiat:2,refund:6,tokens:10,ease:6,users:10,reg:5,total:7.0}
+},
+coinbase:{n:'Coinbase Commerce',c:AC.coinbase,pos:'기관 통합형 온체인 게이트웨이',fee_summary:'1% (Coinbase 유저 간 무료)',
+  qs:[{v:'1%',l:'수수료'},{v:'~200ms',l:'정산'},{v:'비수탁형',l:'유형'},{v:'12%',l:'시장점유율'}],
+  insights:[
+    {type:'good',label:'강점',text:'Base L2 소유($0.01, 200ms). Commerce Protocol 오픈소스(유일). Shopify 독점. CB유저 간 무료(2026.01~).'},
+    {type:'critical',label:'환불 업계 최하위',text:'Self-Managed: 대시보드 환불 버튼 없음. 머천트가 직접 온체인 TX를 보내야 함. 가스비 머천트 부담. API 자동 환불 불가.'},
+    {type:'warn',label:'Commerce 종료',text:'2026.03.31 종료. 미국/싱가포르만 Coinbase Business 전환 가능. 기타 국가 강제 이탈.'},
+    {type:'info',label:'전략',text:'Commerce 직접 수익보다 "USDC 생태계 확장 + 가맹점 락인" 전략적 가치가 핵심.'}
+  ],
+  docs:[
+    {h:'기본 Charge',p:'POST /charges. hosted_url. 100종+. 1%. CB유저 무료.',tg:'API'},
+    {h:'Commerce Protocol (Auth-Capture)',p:'오픈소스 Apache 2.0. Shopify 공동개발. 부분 캡처. 오퍼레이터 자금 접근 불가.',tg:'오픈소스'},
+    {h:'Shopify 네이티브',p:'플러그인 15분. USDC on Base. 외환 수수료 0.',tg:'Shopify'}
+  ],
+  scores:{fee:7,speed:10,fiat:5,refund:5,tokens:8,ease:7,users:7,reg:8,total:7.3}
+},
+stripe:{n:'Stripe Crypto',c:AC.stripe,pos:'전통 결제 + 크립토 수직 통합',fee_summary:'1.5% (가스비 포함)',
+  qs:[{v:'1.5%',l:'수수료'},{v:'T+2',l:'정산'},{v:'관리형',l:'유형'},{v:'7.5',l:'종합 1위'}],
+  insights:[
+    {type:'good',label:'구조적 해자',text:'Bridge($1.1B)+Tempo+Privy 수직 통합은 복제 불가. 가맹점 크립토 노출 완전 제거. 업계 유일 구독 결제.'},
+    {type:'critical',label:'제한',text:'미국 전용 수취. 1.5% 프리미엄(업계 최고). T+2 정산. USD 단일. 차지백/분쟁 시스템 미적용.'},
+    {type:'info',label:'AI 3중 전략',text:'x402(Coinbase,건별) + MPP(Tempo,배치) + ACP(OpenAI,체크아웃). 어떤 표준이 이기든 Stripe가 존재.'},
+    {type:'good',label:'개발자 경험',text:'기존 Stripe API에 crypto 파라미터만 추가. 카드와 동일 대시보드/Sigma 리포팅. 카드 대비 66% 비용 절감.'}
+  ],
+  docs:[
+    {h:'Stablecoin Payments',p:'payment_intent+crypto. USDC/USDP/USDG. 400+ 월렛. 1.5%(가스포함).',tg:'핵심'},
+    {h:'구독 (업계 유일)',p:'스마트 컨트랙트 사전승인→반복인출→재서명 불필요.',tg:'유일'},
+    {h:'Bridge',p:'USDC→USD 자동. OCC 면허. $1.1B 인수.',tg:'인수'},
+    {h:'Tempo L1',p:'결제 전용. 100K+ TPS. ~0.6초. 네이티브 토큰 없음. Visa 검증자.',tg:'L1'},
+    {h:'Pay w/ Crypto.com',p:'사전 환전 불필요. 차지백 없음. 가맹점 유리.',tg:'파트너'}
+  ],
+  scores:{fee:6,speed:7,fiat:10,refund:7,tokens:2,ease:10,users:8,reg:10,total:7.5}
+},
+bitpay:{n:'BitPay',c:AC.bitpay,pos:'엔터프라이즈 암호화폐 게이트웨이',fee_summary:'1~2% + $0.25/건',
+  qs:[{v:'1-2%',l:'수수료'},{v:'T+1~2',l:'정산'},{v:'관리형',l:'유형'},{v:'20%',l:'시장 1위'}],
+  insights:[
+    {type:'good',label:'최대 강점',text:'38개국 법정화폐 직접 정산. Exchange Rate Lock으로 환율 리스크 완전 흡수. 14년 운영(FinCEN MSB). 130K 가맹점.'},
+    {type:'critical',label:'최대 약점',text:'업계 최고 수수료: 2%+$0.25+FX 스프레드 0.5~1.5%(비공개). 실효 ~2.7%. 소액 Network Cost 14~22%. 카드 3년 중단.'},
+    {type:'warn',label:'환불',text:'공식 1-2 영업일이나 실제 72시간~수주 지연. 가스비 환불금에서 공제. Trustpilot 1.2/5.'},
+    {type:'info',label:'분할 정산',text:'법정화폐 1개 + 암호화폐 최대 5개 혼합. 233개국 암호화폐 정산. 분할 비율 자유 설정.'}
+  ],
+  docs:[
+    {h:'Hosted Invoice',p:'15분 유효. Rate Lock. IPN(미서명→API 재검증). 100+코인. 7개 SDK.',tg:'핵심'},
+    {h:'POS + 플러그인 6+',p:'Checkout 앱. Shopify/WooCommerce/Magento. 오프라인 QR.',tg:'오프라인'},
+    {h:'법정화폐 정산',p:'USD/EUR/GBP/CAD/AUD/MXN/NZD. T+1~2. 복수 거래소 Bids 기반.',tg:'38개국'},
+    {h:'분할 정산',p:'법정화폐1+암호화폐5 혼합. 비율 합계 100%.',tg:'유니크'}
+  ],
+  scores:{fee:5,speed:7,fiat:9,refund:7,tokens:7,ease:7,users:7,reg:9,total:7.3}
+}
+};
+
+// ━━━ SCREENS (same structure as before) ━━━━━━━━━━━━━━━━━
+const SCN={
+base:{
+  payment:[
+    {con:{h:'결제 수신',body:`<div class="px"><div class="pr"><span class="l">가맹점</span><span class="v">CryptoShop</span></div><div class="pr"><span class="l">주문</span><span class="v">#4821</span></div><div class="pdiv"></div><div class="pamt" style="color:${AC.base}">$99.00</div><div class="psub">USDC on Base</div></div><div class="pnote" style="background:#eeede9;color:${AC.base}">체크아웃 — TransferIntent 수신</div>`,btn:'결제 진행'},mer:{h:'머천트 대시보드',body:`<div class="px"><div class="pr"><span class="l">주문</span><span class="v">#4821</span></div><div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#eeede9;color:${AC.base}">결제 대기</span></div><div class="pdiv"></div><div class="pr"><span class="l">수령 예상</span><span class="v" style="color:${AC.base}">$98.01</span></div></div><div class="pnote" style="background:#eeede9;color:${AC.base}">PaymentProcessor 컨트랙트로 TransferIntent 생성</div>`},actor:'머천트',title:'결제 요청 생성',desc:'PaymentProcessor 컨트랙트를 통해 TransferIntent 생성. 소비자는 체크아웃에서 수신.',tag:'API Call'},
+    {con:{h:'결제 확인',body:`<div class="ptk sel" style="--accent:${AC.base}"><div class="ico" style="background:#8a7e6a">$</div><div><div class="nm">USDC</div><div class="bl">잔액 523.45 · 스왑 불필요</div></div><div class="chk">✓</div></div><div class="px"><div class="pr"><span class="l">결제</span><span class="v">$99.00</span></div><div class="pr"><span class="l">가스(Base)</span><span class="v">~$0.01</span></div><div class="pdiv"></div><div class="pr"><span class="l" style="font-weight:600;color:#2b2b2a">합계</span><span class="v" style="color:${AC.base}">$99.01</span></div></div>`,btn:'결제 승인'},mer:{h:'대시보드',body:`<div class="px"><div class="pr"><span class="l">토큰</span><span class="v">USDC ✓</span></div><div class="pr"><span class="l">스왑</span><span class="v" style="color:#6b8f5e">불필요</span></div></div><div class="pnote" style="background:#e3e1deee2;color:#6b8f5e">토큰 일치 · TX 서명 대기</div>`},actor:'스마트 컨트랙트',title:'토큰 확인 + 비용 산출',desc:'토큰 일치 확인. 불일치 시 Uniswap V3 자동 스왑.',tag:'On-chain'},
+    {con:{h:'서명',body:`<div class="px dk" style="text-align:center;padding:16px 12px"><div style="font-size:9px;color:#9b9994">MetaMask 서명</div><div style="font-size:20px;font-weight:800;color:#fff;margin:6px 0">$99.00 USDC</div><div style="font-size:9px;color:#76746f;font-family:monospace">To: 0x7Fc9...8B2a</div><div style="display:flex;gap:6px;justify-content:center;margin-top:10px"><div style="padding:7px 18px;border-radius:7px;background:#bf5940;color:#fff;font-size:11px;font-weight:600">거부</div><div style="padding:7px 18px;border-radius:7px;background:${AC.base};color:#fff;font-size:11px;font-weight:600">확인</div></div></div><div class="pnote" style="background:#eeede9;color:#9b9994">원자적: 스왑+전송 하나의 TX · 실패→롤백</div>`,btn:null},mer:{h:'처리 중',body:`<div class="pprog" style="--accent:${AC.base}"><div class="ring"><span style="font-size:14px">⛓</span></div><div><div class="ptl-t">TX 실행 중</div><div class="ptl-s">Base ~2초</div></div></div>`},actor:'블록체인',title:'원자적 토큰 전송',desc:'스왑+전송 하나의 TX. Base ~2초. 실패 시 전체 롤백.',tag:'Atomic TX'},
+    {con:{h:'완료',body:`<div class="pok"><div class="circle" style="background:${AC.base}">✓</div><h3>결제 완료!</h3><p>$99.00 USDC 전송됨</p></div><div class="px"><div class="pr"><span class="l">TX</span><span class="v" style="font-family:monospace;font-size:9px;color:${AC.base}">0xa3f2...8b1c</span></div><div class="pr"><span class="l">수수료 1%</span><span class="v">-$0.99</span></div><div class="pdiv"></div><div class="pr"><span class="l" style="font-weight:600">수령</span><span class="v" style="color:${AC.base};font-size:14px;font-weight:800">$98.01</span></div></div>`,btn:'완료'},mer:{h:'정산 완료',body:`<div class="mp-stat"><div class="mp-big" style="color:${AC.base}">+$98.01</div><div class="mp-sub">USDC 즉시 수령</div></div><div class="pdiv"></div><div class="pr"><span class="l">정산</span><span class="v">~2초</span></div><div class="pr"><span class="l">법정화폐</span><span class="v" style="color:#bf5940;font-size:9px">간접만</span></div>`},actor:'오퍼레이터',title:'1% 차감 + 즉시 정산',desc:'수수료 차감 후 머천트 지갑 즉시 입금. 법정화폐는 Coinbase Business/거래소/Shopify 경유.',tag:'Instant'}
+  ],
+  escrow:[
+    {con:{h:'에스크로 결제',body:`<div class="px"><div class="pr"><span class="l">가맹점</span><span class="v">CryptoShop</span></div><div class="pr"><span class="l">주문</span><span class="v">#5102 · 실물</span></div><div class="pdiv"></div><div class="pamt" style="color:${AC.base}">$250.00</div><div class="psub">에스크로 보호 결제</div></div><div class="pnote" style="background:#eeede9;color:${AC.base}">구매자 보호 — 배송 확인 후 머천트 지급</div>`,btn:'에스크로로 결제'},mer:{h:'에스크로 주문',body:`<div class="pr"><span class="l">주문</span><span class="v">#5102</span></div><div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#fff8e1;color:#856404">자금 잠김</span></div><div class="pdiv"></div><div class="pr"><span class="l">금액</span><span class="v" style="color:#b8860b">🔒 $250</span></div><div class="pnote" style="background:#fff8e1;color:#856404">⚠ 아직 수령 불가 — 배송 완료 후 Capture</div>`},actor:'구매자',title:'결제 → 에스크로 예치',desc:'구매자가 $250 결제. 머천트 아닌 중립 스마트 컨트랙트가 자금 보관. authExpiry 72h, refundExpiry 30일.',tag:'Authorize'},
+    {con:{h:'배송 진행 중',body:`<div class="px" style="text-align:center;padding:14px"><div style="font-size:24px;margin-bottom:4px">📦</div><div style="font-size:12px;font-weight:700">배송 중</div><div style="font-size:10px;color:#9b9994;margin-top:2px">예상 도착: 2일 후</div></div><div class="px"><div class="pr"><span class="l">내 자금</span><span class="v" style="color:#b8860b">🔒 에스크로</span></div><div class="pr"><span class="l">환불 가능</span><span class="v" style="color:#6b8f5e">30일</span></div></div><div class="pnote" style="background:#e3e1deee2;color:#6b8f5e">✓ 머천트 임의 수령 불가</div>`,btn:null},mer:{h:'상품 발송',body:`<div class="px"><div class="pr"><span class="l">상품</span><span class="v">발송 완료</span></div><div class="pr"><span class="l">운송장</span><span class="v" style="font-size:9px;font-family:monospace">1Z999...A12</span></div></div><div class="mp-stat"><div class="mp-big" style="color:#b8860b">🔒 $250</div><div class="mp-sub">수령 확인 대기</div></div><div class="mp-note" style="background:#fff8e1;color:#856404">Void 가능 (수수료 0)</div>`},actor:'에스크로',title:'자금 잠김 + 배송 진행',desc:'머천트는 상품 발송. 자금은 스마트 컨트랙트에 잠겨 머천트도 임의로 못 가져감. 문제 시 환불 가능.',tag:'Escrow Lock'},
+    {con:{h:'수령 확인',body:`<div class="px" style="text-align:center;padding:14px"><div style="font-size:24px;margin-bottom:4px">✓</div><div style="font-size:12px;font-weight:700">상품 도착</div><div style="font-size:10px;color:#9b9994;margin-top:2px">내용물 정상 확인</div></div><div class="ptk sel" style="--accent:${AC.base}"><div style="flex:1"><div class="nm">거래 확정</div><div class="bl">에스크로 → 머천트 릴리즈</div></div><div class="chk">✓</div></div>`,btn:'거래 확정'},mer:{h:'Capture',body:`<div class="pr"><span class="l">수령 확인</span><span class="v" style="color:#6b8f5e">완료</span></div><div class="pr"><span class="l">캡처</span><span class="v">$250</span></div><div class="pr"><span class="l">수수료</span><span class="v">-$2.50(1%)</span></div><div class="mp-bar"><div class="mp-bar-fill" style="width:100%;background:${AC.base}"></div></div><div class="pnote" style="background:#eeede9;color:${AC.base}">수령 확인 → Capture 가능</div>`},actor:'구매자',title:'수령 확인 → Capture 승인',desc:'구매자가 상품 수령 확인. 스마트 컨트랙트가 자금 릴리즈 조건 충족 판단. 부분/전액 Capture.',tag:'Capture'},
+    {con:{h:'거래 완료',body:`<div class="pok"><div class="circle" style="background:${AC.base}">✓</div><h3>거래 완료</h3><p>에스크로 → 머천트 릴리즈</p></div><div class="px"><div class="pr"><span class="l">결제</span><span class="v">$250</span></div><div class="pr"><span class="l">머천트 수령</span><span class="v" style="color:${AC.base}">$247.50</span></div><div class="pdiv"></div><div class="pr"><span class="l">환불 기간</span><span class="v" style="color:#6b8f5e">30일 남음</span></div></div>`,btn:'완료'},mer:{h:'정산 완료',body:`<div class="mp-stat"><div class="mp-big" style="color:${AC.base}">+$247.50</div><div class="mp-sub">USDC · 머천트 지갑 입금</div></div><div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#e3e1deee2;color:#6b8f5e">Captured</span></div><div class="pnote" style="background:#eeede9;color:${AC.base}">에스크로 릴리즈 → 정산 완료</div>`},actor:'스마트 컨트랙트',title:'자금 릴리즈 → 머천트 정산',desc:'에스크로가 머천트 지갑으로 $247.50 전달. 1% 수수료 차감. 미캡처분 authExpiry 후 자동 반환(Reclaim).',tag:'Settled'}
+  ]
+},
+binance:{payment:[
+  {con:{h:'Binance Pay',body:`<div style="text-align:center;font-size:12px;font-weight:600;padding:4px 0">누구에게?</div><div class="pwallet" style="border:1.5px solid ${AC.binance}"><div class="wi" style="background:#fff8e1">👤</div><div><div class="wn">Alex Kim</div><div class="wa">Pay ID: ALEX2026</div></div></div>`,btn:'다음'},mer:{h:'수신자 계정',body:`<div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#fff8e1;color:#856404">입금 대기</span></div><div class="pnote" style="background:#fff8e1;color:#856404">양측 Binance KYC 필수</div>`},actor:'발신자',title:'수신자 식별',desc:'Pay ID, 이메일, 전화번호. Binance 계정+KYC 필수.',tag:'ID Lookup'},
+  {con:{h:'토큰 선택',body:`<div class="pamt" style="color:${AC.binance}">50 USDT</div><div class="ptk sel" style="--accent:${AC.binance}"><div class="ico" style="background:#6b8f5e">₮</div><div><div class="nm">USDT</div><div class="bl">잔액 1,234.56</div></div><div class="chk">✓</div></div><div class="ptk"><div class="ico" style="background:#F7931A">₿</div><div><div class="nm">BTC</div><div class="bl">0.125</div></div><div class="chk"></div></div><div class="pnote" style="background:#fff8e1;color:#856404">P2P: 수수료 0% · 가스비 0%</div>`,btn:'보내기'},mer:{h:'입금 처리',body:`<div class="pr"><span class="l">토큰</span><span class="v">50 USDT</span></div><div class="pr"><span class="l">방식</span><span class="v" style="color:${AC.binance}">오프체인</span></div>`},actor:'발신자',title:'토큰 선택 (300종+)',desc:'P2P 수수료 0%. 가스비 0%.',tag:'300+ Tokens'},
+  {con:{h:'전송 중',body:`<div class="pprog" style="--accent:${AC.binance};padding:12px 0"><div class="ring"><span style="font-size:14px">⚡</span></div><div><div class="ptl-t">내부 원장 이체</div><div class="ptl-s">10K+ TPS · <10ms</div></div></div>`,btn:null},mer:{h:'처리 중',body:`<div class="mp-stat"><div class="mp-big" style="color:${AC.binance}">10K+ TPS</div><div class="mp-sub">Raft+RocksDB</div></div>`},actor:'Binance 원장',title:'오프체인 즉시 이체',desc:'Raft 합의. 10K+ TPS, <10ms.',tag:'Off-chain'},
+  {con:{h:'완료',body:`<div class="pok"><div class="circle" style="background:${AC.binance}">✓</div><h3>전송 완료!</h3><p>Alex Kim에게 50 USDT</p></div><div class="px"><div class="pr"><span class="l">수수료</span><span class="v" style="color:#6b8f5e">무료</span></div><div class="pr"><span class="l">소요</span><span class="v" style="color:${AC.binance}">즉시</span></div></div>`,btn:'완료'},mer:{h:'수신 완료',body:`<div class="mp-stat"><div class="mp-big" style="color:${AC.binance}">+50 USDT</div><div class="mp-sub">Funding Wallet 즉시</div></div><div class="mp-note" style="background:#f5ebe5;color:#bf5940">⚠ 법정화폐 출금 불가</div>`},actor:'수신자',title:'즉시 수신',desc:'즉시 반영. 법정화폐 출금 별도 수동.',tag:'Instant'}
+]},
+stripe:{payment:[
+  {con:{h:'Checkout',body:`<div class="px"><div class="pr"><span class="l">SaaS Pro</span><span class="v">$29/mo</span></div></div><div class="ptk sel" style="--accent:${AC.stripe}"><div class="ico" style="background:#8a7e6a;font-size:9px">$</div><div><div class="nm">Stablecoin</div><div class="bl">USDC, USDP, USDG</div></div><div class="chk">✓</div></div><div class="pnote" style="background:#eeede9;color:${AC.stripe}">카드 대비 66% 절감</div>`,btn:'Stablecoin 결제'},mer:{h:'Stripe Dashboard',body:`<div class="pr"><span class="l">PI</span><span class="v" style="font-size:9px;font-family:monospace">pi_3Ox...kL9</span></div><div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#eeede9;color:${AC.stripe}">requires_action</span></div><div class="pr"><span class="l">method</span><span class="v">crypto</span></div><div class="pnote" style="background:#eeede9;color:${AC.stripe}">기존 Stripe UI와 동일</div>`},actor:'머천트',title:'payment_intent + crypto',desc:'기존 Stripe에 crypto 파라미터만 추가.',tag:'Stripe API'},
+  {con:{h:'서명',body:`<div class="px dk" style="text-align:center;padding:16px 12px"><div style="font-size:9px;color:#9b9994">MetaMask 서명</div><div style="font-size:20px;font-weight:800;color:#fff;margin:6px 0">$29.00 USDC</div><div style="font-size:9px;color:#76746f;font-family:monospace">To: crypto.stripe.com</div><div style="display:flex;gap:6px;justify-content:center;margin-top:10px"><div style="padding:7px 18px;border-radius:7px;background:#bf5940;color:#fff;font-size:11px;font-weight:600">거부</div><div style="padding:7px 18px;border-radius:7px;background:${AC.stripe};color:#fff;font-size:11px;font-weight:600">확인</div></div></div><div class="pnote" style="background:#eeede9;color:#9b9994">crypto.stripe.com · 400+ 월렛 지원</div>`,btn:null},mer:{h:'Dashboard',body:`<div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#fff8e1;color:#856404">processing</span></div><div class="pnote" style="background:#eeede9;color:#9b9994">머천트 개입 불필요</div>`},actor:'고객',title:'트랜잭션 서명',desc:'연결된 월렛에서 TX 서명. 머천트 개입 없음.',tag:'Sign TX'},
+  {con:{h:'처리 중',body:`<div class="pprog" style="--accent:${AC.stripe};padding:10px 0"><div class="ring"><span style="font-size:12px">⛓</span></div><div><div class="ptl-t">블록 확인 중</div><div class="ptl-s">Stripe 자동 추적</div></div></div><div class="ptl"><div class="ptl-i"><div class="ptl-d" style="background:${AC.stripe}"></div><div><div class="ptl-t">블록 확인 (Base ~2초)</div></div></div><div class="ptl-i"><div class="ptl-d" style="background:#e3e1de"></div><div><div class="ptl-t">Bridge USD 전환...</div></div></div></div>`,btn:null},mer:{h:'Bridge 변환',body:`<div class="ptl"><div class="ptl-i"><div class="ptl-d" style="background:${AC.stripe}"></div><div><div class="ptl-t">USDC→USD</div><div class="ptl-s">Bridge 자동</div></div></div></div>`},actor:'Bridge',title:'블록 확인 + USD 전환',desc:'Bridge($1.1B)가 자동 전환. 크립토 노출 0.',tag:'Auto Convert'},
+  {con:{h:'완료',body:`<div class="pok"><div class="circle" style="background:${AC.stripe}">✓</div><h3>결제 완료!</h3><p>$29.00 Stablecoin</p></div><div class="px"><div class="pr"><span class="l">수수료 1.5%</span><span class="v">-$0.44</span></div><div class="pr"><span class="l">정산</span><span class="v" style="color:${AC.stripe};font-weight:800">$28.56 USD</span></div><div class="pdiv"></div><div class="pr"><span class="l">은행</span><span class="v">T+2</span></div><div class="pr"><span class="l">크립토</span><span class="v" style="color:#6b8f5e">제로</span></div></div>`,btn:'완료'},mer:{h:'정산',body:`<div class="mp-stat"><div class="mp-big" style="color:${AC.stripe}">+$28.56</div><div class="mp-sub">USD 잔고</div></div><div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#e3e1deee2;color:#6b8f5e">succeeded</span></div><div class="pr"><span class="l">은행</span><span class="v">T+2 (4/18)</span></div><div class="pnote" style="background:#e3e1deee2;color:#6b8f5e">카드와 동일 대시보드</div>`},actor:'Stripe',title:'USD 잔고 반영',desc:'T+2 은행 정산. 크립토 완전 차폐.',tag:'Zero Crypto'}
+]},
+coinbase:{payment:[
+  {con:{h:'Commerce',body:`<div class="pamt" style="color:${AC.coinbase}">$75.00</div><div class="ptk sel" style="--accent:${AC.coinbase}"><div class="ico" style="background:#8a7e6a">$</div><div><div class="nm">USDC on Base</div><div class="bl">1% + ~$0.01</div></div><div class="chk">✓</div></div><div class="pnote" style="background:#eeede9;color:${AC.coinbase}">CB 유저 간: 무료</div>`,btn:'결제'},mer:{h:'Commerce Dashboard',body:`<div class="pr"><span class="l">Charge</span><span class="v">#0042</span></div><div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#eeede9;color:${AC.coinbase}">NEW</span></div>`},actor:'고객',title:'토큰 선택',desc:'100종+. Base ~200ms. CB유저 무료(2026.01~).',tag:'Hosted Page'},
+  {con:{h:'완료',body:`<div class="pok"><div class="circle" style="background:${AC.coinbase}">✓</div><h3>결제 완료!</h3><p>$75.00 USDC</p></div><div class="px"><div class="pr"><span class="l">수수료 1%</span><span class="v">-$0.75</span></div><div class="pdiv"></div><div class="pr"><span class="l">수령</span><span class="v" style="color:${AC.coinbase};font-weight:800">$74.25</span></div></div>`,btn:'완료'},mer:{h:'정산',body:`<div class="mp-stat"><div class="mp-big" style="color:${AC.coinbase}">+$74.25</div><div class="mp-sub">USDC · 비수탁 지갑</div></div><div class="mp-note" style="background:#f5ebe5;color:#bf5940">⚠ 환불 버튼 없음 · 수동 TX</div>`},actor:'머천트',title:'정산 완료',desc:'비수탁 즉시. 법정화폐 Managed만(USD). 환불 수동.',tag:'1% Fee'}
+]},
+bitpay:{payment:[
+  {con:{h:'BitPay Invoice',body:`<div class="pamt" style="color:${AC.bitpay}">$32.50</div><div class="px"><div class="pr"><span class="l">유효</span><span class="v" style="color:${AC.bitpay}">14:58</span></div><div style="height:3px;background:#e3e1de;border-radius:2px;margin-top:4px"><div style="height:100%;width:95%;background:${AC.bitpay};border-radius:2px"></div></div></div><div class="pqr">${qr()}</div><div class="psub">QR 스캔</div>`,btn:'지갑에서 열기'},mer:{h:'BitPay Dashboard',body:`<div class="pr"><span class="l">Invoice</span><span class="v">#20260416</span></div><div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#eeede9;color:${AC.bitpay}">New</span></div><div class="pr"><span class="l">Rate Lock</span><span class="v" style="color:#6b8f5e">적용</span></div>`},actor:'BitPay',title:'Invoice (15분)',desc:'Exchange Rate Lock. 100+ 코인.',tag:'15분 유효'},
+  {con:{h:'확인 대기',body:`<div class="pprog" style="--accent:${AC.bitpay};padding:8px 0"><div class="ring"><span style="font-size:12px">⛓</span></div><div><div class="ptl-t">블록 확인</div><div class="ptl-s">BTC ~10분</div></div></div><div class="ptl"><div class="ptl-i"><div class="ptl-d" style="background:${AC.bitpay}"></div><div><div class="ptl-t">Confirmed(~10분)</div></div></div><div class="ptl-i"><div class="ptl-d" style="background:#e3e1de"></div><div><div class="ptl-t">Complete(~20분)</div></div></div></div>`,btn:null},mer:{h:'확인 중',body:`<div class="pr"><span class="l">상태</span><span class="mp-badge" style="background:#fff8e1;color:#856404">Confirmed</span></div><div class="mp-bar"><div class="mp-bar-fill" style="width:50%;background:${AC.bitpay}"></div></div><div class="mp-note" style="background:#fff8e1;color:#856404">⚠ IPN 미서명→API 재검증</div>`},actor:'블록체인',title:'온체인 확인',desc:'BTC ~10분 Confirmed, ~20분 Complete.',tag:'10-20분'},
+  {con:{h:'완료',body:`<div class="pok"><div class="circle" style="background:${AC.bitpay}">✓</div><h3>결제 완료!</h3><p>0.00049 BTC</p></div><div class="px"><div class="pr"><span class="l">수수료</span><span class="v">-$0.90</span></div><div class="pr"><span class="l">정산</span><span class="v">T+1~2 USD</span></div><div class="pdiv"></div><div class="pr"><span class="l">수령</span><span class="v" style="color:${AC.bitpay};font-weight:800">$31.60</span></div></div><div class="pnote" style="background:#e3e1deee2;color:#6b8f5e">Rate Lock — 환율 0%</div>`,btn:'완료'},mer:{h:'정산 예정',body:`<div class="mp-stat"><div class="mp-big" style="color:${AC.bitpay}">+$31.60</div><div class="mp-sub">USD · T+1~2 은행</div></div><div class="ptl"><div class="ptl-i"><div class="ptl-d" style="background:${AC.bitpay}"></div><div><div class="ptl-t">일일 배치</div></div></div><div class="ptl-i"><div class="ptl-d" style="background:#e3e1de"></div><div><div class="ptl-t">은행 송금(38개국)</div></div></div></div><div class="mp-note" style="background:#fff8e1;color:#856404">FX 0.5~1.5% 비공개</div>`},actor:'BitPay',title:'정산 예정',desc:'일일 배치→Rate Lock→38개국 은행.',tag:'T+1~2'}
+]}
+};
+
+// ━━━ STATE & RENDER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let cur='base',curScn='payment',curStep=0;
+
+function renderNav(){
+  const el=document.getElementById('pills');
+  const all=[...Object.entries(SVCS).map(([k,s])=>({id:k,...s}))];
+  el.innerHTML=all.map(s=>`<div class="pill ${s.id===cur?'on':''}" onclick="sel('${s.id}')">${s.n}</div>`).join('');
+}
+
+function renderScnBar(){
+  const el=document.getElementById('scnBar');
+  if(cur==='compare'){
+    el.innerHTML=`<div class="scn-tabs">${['scorecard','payment','settlement','refund','scenario'].map(k=>`<div class="scn-pill ${k===curScn?'on':''}" onclick="selScn('${k}')">${{scorecard:'스코어카드',payment:'결제',settlement:'정산',refund:'환불',scenario:'시나리오'}[k]}</div>`).join('')}</div>`;
+    return;
+  }
+  const scnData=SCN[cur];if(!scnData)return;
+  el.innerHTML=`<div class="scn-tabs">${Object.keys(scnData).map(k=>`<div class="scn-pill ${k===curScn?'on':''}" onclick="selScn('${k}')">${{payment:'즉시 결제',escrow:'에스크로',merchant:'가맹점 결제',p2p:'P2P'}[k]||k}</div>`).join('')}</div>`;
+}
+
+function render(){
+  const stage=document.getElementById('stage');
+  if(cur==='compare'){renderCompare(stage);return;}
+  const s=SVCS[cur];if(!s)return;
+  const scnData=SCN[cur];if(!scnData){stage.innerHTML='';return;}
+  if(!scnData[curScn])curScn=Object.keys(scnData)[0];
+  const screens=scnData[curScn];
+  if(curStep>=screens.length)curStep=screens.length-1;
+  const sc=screens[curStep];
+  const thumbTop=42+(curStep/(screens.length-1||1))*(560-94-52);
+
+  stage.innerHTML=`
+    <div class="pg-head">
+      <div class="pg-title">${s.n}</div>
+      <div class="pg-sub">${s.pos}</div>
+      <div class="pg-flag" style="--accent:${s.c}">${s.fee_summary}</div>
+    </div>
+    <div class="top-wrap">
+    <div class="scn-inner" id="scnBar"></div>
+    <div class="phone-nav">
+      <button class="ph-arrow left" onclick="prev()" ${curStep===0?'style="opacity:.15;pointer-events:none"':''}><svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M15 4L7 12L15 20" stroke="#2b2b2a" stroke-width="1.5"/></svg></button>
+    <div class="phone-section">
+      <div class="phone-col"><div class="col-label">소비자</div>
+        <div class="phone" id="conPhone" style="--accent:${s.c}">
+          <div class="thumb" style="top:${thumbTop}px"></div>
+          <div class="ph-status"><span>9:41</span><span style="display:flex;align-items:center;gap:4px"><svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="6" width="2" height="4" rx="0.5" fill="#9b9994"/><rect x="3" y="4" width="2" height="6" rx="0.5" fill="#9b9994"/><rect x="6" y="2" width="2" height="8" rx="0.5" fill="#9b9994"/><rect x="9" y="0" width="2" height="10" rx="0.5" fill="#9b9994"/></svg><svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 1.5A4.5 4.5 0 0 0 .5 6v.5A1 1 0 0 0 1.5 7.5h.25A.25.25 0 0 0 2 7.25V5.75A.25.25 0 0 0 1.75 5.5h-.25A3.5 3.5 0 0 1 5 2.5 3.5 3.5 0 0 1 8.5 5.5h-.25a.25.25 0 0 0-.25.25v1.5a.25.25 0 0 0 .25.25h.25A1 1 0 0 0 9.5 6.5V6A4.5 4.5 0 0 0 5 1.5z" fill="#9b9994"/></svg><svg width="20" height="10" viewBox="0 0 20 10"><rect x="0" y="1" width="16" height="8" rx="2" stroke="#9b9994" stroke-width="1" fill="none"/><rect x="17" y="3" width="2" height="4" rx="0.5" fill="#9b9994"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#484746"/></svg></span></div>
+          <div class="ph-bar">${curStep>0?'<div class="back" onclick="prev()">←</div>':''}<div class="title">${sc.con.h}</div><div class="badge" style="background:${s.c}">${s.n[0]}</div></div>
+          <div class="ph-body">${sc.con.body}</div>
+          ${sc.con.btn?`<div class="ph-bottom"><div class="ph-btn" style="background:#2b2b2a" onclick="next()">${sc.con.btn}</div></div>`:'<div style="height:10px"></div>'}
+        </div>
+      </div>
+      <div class="phone-col"><div class="col-label">판매자 / 서비스</div>
+        <div class="phone" style="--accent:${s.c}">
+          <div class="thumb" style="top:${thumbTop}px"></div>
+          <div class="ph-status"><span>9:41</span><span style="display:flex;align-items:center;gap:4px"><svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="6" width="2" height="4" rx="0.5" fill="#9b9994"/><rect x="3" y="4" width="2" height="6" rx="0.5" fill="#9b9994"/><rect x="6" y="2" width="2" height="8" rx="0.5" fill="#9b9994"/><rect x="9" y="0" width="2" height="10" rx="0.5" fill="#9b9994"/></svg><svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 1.5A4.5 4.5 0 0 0 .5 6v.5A1 1 0 0 0 1.5 7.5h.25A.25.25 0 0 0 2 7.25V5.75A.25.25 0 0 0 1.75 5.5h-.25A3.5 3.5 0 0 1 5 2.5 3.5 3.5 0 0 1 8.5 5.5h-.25a.25.25 0 0 0-.25.25v1.5a.25.25 0 0 0 .25.25h.25A1 1 0 0 0 9.5 6.5V6A4.5 4.5 0 0 0 5 1.5z" fill="#9b9994"/></svg><svg width="20" height="10" viewBox="0 0 20 10"><rect x="0" y="1" width="16" height="8" rx="2" stroke="#9b9994" stroke-width="1" fill="none"/><rect x="17" y="3" width="2" height="4" rx="0.5" fill="#9b9994"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#484746"/></svg></span></div>
+          <div class="ph-bar"><div class="title">${sc.mer.h}</div><div class="badge" style="background:${s.c}">${s.n[0]}</div></div>
+          <div class="ph-body">${sc.mer.body}</div>
+        </div>
+      </div>
+    </div>
+      <button class="ph-arrow right" onclick="next()" ${curStep>=screens.length-1?'style="opacity:.15;pointer-events:none"':''}><svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M9 4L17 12L9 20" stroke="#2b2b2a" stroke-width="1.5"/></svg></button>
+    </div>
+
+      <div class="ctx-strip" style="--accent:${s.c}">
+        <div class="ctx-cols">
+          <div class="ctx-col">
+            <div class="ctx-role">소비자</div>
+            <div class="ctx-title">${sc.con.h}</div>
+            <div class="ctx-desc">${sc.con.btn||'대기 중'}</div>
+          </div>
+          <div class="ctx-col">
+            <div class="ctx-role">판매자 / 서비스</div>
+            <div class="ctx-title">${sc.mer.h}</div>
+            <div class="ctx-desc">${sc.desc}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12)">
+          <div class="ctrl-dots">${screens.map((_,i)=>`<div class="ctrl-dot ${i===curStep?'on':''}" onclick="goStep(${i})"></div>`).join('')}</div>
+        </div>
+      </div>
+    </div>
+
+      <div class="info-section" style="--accent:${s.c}">
+      <div class="card"><h3>핵심 수치</h3>
+        <div class="qstats">${s.qs.map(q=>`<div class="qs"><div class="qv">${q.v}</div><div class="ql">${q.l}</div></div>`).join('')}</div>
+        <div style="margin-top:24px">${Object.entries({fee:'수수료',speed:'속도',fiat:'법정화폐',refund:'환불',tokens:'토큰',ease:'통합',users:'사용자',reg:'규제'}).map(([k,l])=>`<div class="sbar"><div class="sl">${l}</div><div class="sbg"><div class="sfg" style="width:${s.scores[k]*10}%"></div></div><div class="sv">${s.scores[k]}</div></div>`).join('')}
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bd);text-align:center"><span style="font-size:28px;font-weight:900;color:var(--tx)">${s.scores.total.toFixed(1)}</span><span style="font-size:14px;font-weight:600;color:var(--dim)"> / 10</span><div style="font-size:11px;color:var(--dim);margin-top:2px">종합 점수</div></div>
+        </div>
+      </div>
+
+      <div class="card"><h3>핵심 인사이트</h3>
+        ${s.insights.map(i=>`<div class="insight-item ${i.type}"><div class="insight-label">${i.label}</div>${i.text}</div>`).join('')}
+      </div>
+
+      <div class="card full"><h3>상세 스펙 (Docs)</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:5px">
+          ${s.docs.map(d=>`<div class="doc-item"><h4>${d.h}</h4><p>${d.p}</p><span class="doc-tag">${d.tg}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCompare(stage){
+  const svcs=Object.entries(SVCS);
+  const labels={fee:'수수료',speed:'속도',fiat:'법정화폐',refund:'환불',tokens:'토큰',ease:'통합',users:'사용자',reg:'규제'};
+  let h='<div class="compare">';
+  if(curScn==='scorecard'){
+    h+=`<h2>경쟁력 스코어카드</h2><div class="csub">72페이지 리서치 기반 10점 만점</div>`;
+    h+=`<div class="card" style="margin-bottom:12px"><div style="overflow-x:auto"><table class="ctbl"><thead><tr><th>항목</th>${svcs.map(([k,s])=>`<th style="color:${s.c}">${s.n}</th>`).join('')}</tr></thead><tbody>`;
+    for(const[ck,cl]of Object.entries(labels)){h+=`<tr><td style="font-weight:600">${cl}</td>${svcs.map(([k,s])=>`<td><div style="display:flex;align-items:center;gap:4px"><div style="flex:1;height:4px;background:var(--s3);border-radius:2px;overflow:hidden"><div style="height:100%;width:${s.scores[ck]*10}%;background:${s.c};border-radius:2px"></div></div><span style="font-weight:700;color:${s.c};font-size:10px">${s.scores[ck]}</span></div></td>`).join('')}</tr>`;}
+    h+=`<tr style="font-weight:800"><td>종합</td>${svcs.map(([k,s])=>`<td style="color:${s.c};font-size:14px">${s.scores.total.toFixed(1)}</td>`).join('')}</tr></tbody></table></div></div>`;
+    h+=`<div class="callout"><strong>5대 핵심 발견:</strong> 1)법정화폐 자동정산=Stripe+BitPay만 2)독립수익=BitPay만 3)환불/보호 업계 미해결 4)Stripe 수직통합=구조적 위협 5)AI 에이전트=차세대 성장</div>`;
+  } else if(curScn==='scenario'){
+    h+=`<h2>최적 시나리오 추천</h2><div class="csub">유스케이스별 적합 서비스</div>`;
+    const recs=[['실물 이커머스','에스크로 Auth-Capture','Base / Coinbase'],['디지털 상품','1%+$0.01 최저','Base Pay'],['법정화폐 자동정산','크립토 차폐 USD','Stripe'],['글로벌 법정화폐','38개국 직접','BitPay'],['Binance 사용자','P2P 무료 즉시','Binance Pay'],['AI 에이전트','x402/MPP','Base / Stripe'],['SaaS 구독','스마트컨트랙트(유일)','Stripe'],['신흥국','가스비0 은행불필요','Binance Pay']];
+    h+=`<div class="sc-grid">${recs.map(([t,r,s])=>`<div class="sc-card"><h4>${t}</h4><p>${r}</p><span class="stag">${s}</span></div>`).join('')}</div>`;
+  } else {
+    const tables={payment:[['즉시 결제',[1,1,1,1,1]],['Auth-Capture',[1,0,1,0,0]],['AI 에이전트',[1,0,0,1,0]],['구독',[0,0,0,1,0]],['QR',[0,1,0,0,1]],['오픈소스',[1,0,1,0,'△']],['Shopify',[1,0,1,1,'앱']]],settlement:[['속도',['~2초','<10ms','~200ms','0.4~12초','~1h']],['법정화폐',['✗간접','✗불가','△USD','✓자동','✓38국']],['수수료',['~1%','1%','1%','1.5%','1-2%']],['크립토노출',['있음','있음','있음','없음','선택']]],refund:[['대시보드환불',['✗','✓','✗수동','✓','✓']],['수수료환불',['✗','✓유일','✗','✗','✗']],['Void',['✓','✗','✓','✗','✗']],['UX',['중','중','하','상','중하']]]};
+    const data=tables[curScn];if(data){
+      h+=`<h2>${{payment:'결제',settlement:'정산',refund:'환불'}[curScn]} 비교</h2><div class="csub">5개 서비스 교차 비교</div>`;
+      h+=`<div class="card"><div style="overflow-x:auto"><table class="ctbl"><thead><tr><th></th>${svcs.map(([k,s])=>`<th style="color:${s.c}">${s.n}</th>`).join('')}</tr></thead><tbody>`;
+      for(const[f,vals]of data){h+=`<tr><td style="font-weight:600">${f}</td>${vals.map(v=>typeof v==='number'?`<td class="${v?'ck':'cx'}">${v?'✓':'✗'}</td>`:`<td>${v}</td>`).join('')}</tr>`;}
+      h+=`</tbody></table></div></div>`;
+    }
+  }
+  h+='</div>';stage.innerHTML=h;
+}
+
+function sel(id){cur=id;curStep=0;if(id==='compare'){if(!['scorecard','payment','settlement','refund','scenario'].includes(curScn))curScn='scorecard';}else{const d=SCN[id];if(d)curScn=Object.keys(d)[0];}renderNav();render();renderScnBar();}
+function selScn(k){curScn=k;curStep=0;render();renderScnBar();}
+function next(){const d=SCN[cur];if(!d||!d[curScn])return;if(curStep<d[curScn].length-1){curStep++;render();renderScnBar();}}
+function prev(){if(curStep>0){curStep--;render();renderScnBar();}}
+function goStep(i){curStep=i;render();renderScnBar();}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next();}else if(e.key==='ArrowLeft'){e.preventDefault();prev();}});
+renderNav();render();renderScnBar();
+</script>
+</body>
+</html>
